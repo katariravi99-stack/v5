@@ -90,8 +90,15 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(
   cors({
-    origin: [process.env.CLIENT_URL || "http://localhost:3000"],
-    credentials: true
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:3000",
+      "https://varahasilks.in",
+      "https://www.varahasilks.in"
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    optionsSuccessStatus: 200
   })
 );
 
@@ -414,6 +421,14 @@ app.post("/api/contact", async (req, res) => {
 });
 
 // Razorpay Payment API
+app.options("/api/orders/create", (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
 app.post("/api/orders/create", async (req, res) => {
   try {
     const { amount, currency, receipt, notes } = req.body;
@@ -450,6 +465,10 @@ app.post("/api/orders/create", async (req, res) => {
     
     console.log('✅ Razorpay order created successfully:', order.id);
     console.log('📤 Sending response:', order);
+    
+    // Add CORS headers to response
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
     res.json(order);
   } catch (error) {
     console.error('❌ Error creating Razorpay order:', error);
